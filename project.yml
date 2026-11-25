@@ -14,15 +14,16 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: Audio.swift
-      - path: EditorView.swift
-      - path: FigurinhaApp.swift
-      - path: PackView.swift
-      - path: Theme.swift
+      - Audio.swift
+      - EditorView.swift
+      - FigurinhaApp.swift
+      - PackView.swift
+      - Theme.swift
     dependencies:
       - package: SDWebImageWebPCoder
         product: SDWebImageWebPCoder
     info:
+      path: Info.plist
       properties:
         CFBundleDisplayName: Figurinhas
         UILaunchScreen: {}
@@ -32,6 +33,11 @@ targets:
         NSPhotoLibraryUsageDescription: "Permitir selecionar fotos para criar figurinhas."
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.figurinha
@@ -39,3 +45,7 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGNING_ALLOWED: "NO"
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGN_IDENTITY: ""
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"

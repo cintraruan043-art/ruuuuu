@@ -141,8 +141,8 @@ enum StickerVideoExporter {
         var pb: CVPixelBuffer?
         let attrs = [kCVPixelBufferCGImageCompatibilityKey: true,
                      kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary
-        CVPixelBufferCreate(kCFAllocatorDefault, 512, 512, kCVPixelFormatType_32ARGB, attrs, &pb)
-        guard let buf = pb else { return nil }
+        let status = CVPixelBufferCreate(kCFAllocatorDefault, 512, 512, kCVPixelFormatType_32ARGB, attrs, &pb)
+        guard status == kCVReturnSuccess, let buf = pb else { return nil }
         CVPixelBufferLockBaseAddress(buf, [])
         defer { CVPixelBufferUnlockBaseAddress(buf, []) }
         guard let ctx = CGContext(data: CVPixelBufferGetBaseAddress(buf), width: 512, height: 512,

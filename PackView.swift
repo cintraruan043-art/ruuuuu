@@ -14,7 +14,6 @@ struct PackView: View {
     var body: some View {
         ZStack {
             Theme.bg.ignoresSafeArea()
-                .sheet(item: $shareItem) { ShareSheet(url: $0.url) }
             VStack(spacing: 14) {
                 TextField("Nome do pacote", text: $store.packName)
                     .padding(10).background(Theme.card).cornerRadius(12)
@@ -52,6 +51,7 @@ struct PackView: View {
                 }.disabled(store.stickers.count < 3)
             }.padding()
         }
+        .sheet(item: $shareItem) { item in ShareSheet(url: item.url) }
     }
 
     func export(_ s: Sticker) {
@@ -71,15 +71,25 @@ struct PackView: View {
     }
 
     func importToWhatsApp() {
-        let tray = UIGraphicsImageRenderer(size: CGSize(width: 96, height: 96), format: { let f = UIGraphicsImageRendererFormat(); f.scale = 1; return f }()).image { _ in
+        let trayFormat = UIGraphicsImageRendererFormat()
+        trayFormat.scale = 1
+        let trayRenderer = UIGraphicsImageRenderer(size: CGSize(width: 96, height: 96), format: trayFormat)
+        let trayImage = trayRenderer.image { _ in
             store.stickers[0].image.draw(in: CGRect(x: 0, y: 0, width: 96, height: 96))
-        }.pngData()!.base64EncodedString()
+        }
+        guard let trayPNG = trayImage.pngData() else { return }
+        let tray = trayPNG.base64EncodedString()
 
         let stickers: [[String: Any]] = store.stickers.prefix(30).compactMap { s in
-            var q = 0.8, data = webp(s.image, quality: q)
-            while let d = data, d.count > 100_000, q > 0.1 { q -= 0.1; data = webp(s.image, quality: q) }
+            var q = 0.8
+            var data = self.webp(s.image, quality: q)
+            while let d = data, d.count > 100_000, q > 0.1 {
+                q -= 0.1
+                data = self.webp(s.image, quality: q)
+            }
             guard let d = data else { return nil }
-            return ["image_data": d.base64EncodedString(), "emojis": [s.emoji]]
+            let item: [String: Any] = ["image_data": d.base64EncodedString(), "emojis": [s.emoji]]
+            return item
         }
         let json: [String: Any] = [
             "identifier": UUID().uuidString, "name": store.packName, "publisher": "Figurinha App",
@@ -88,6 +98,8 @@ struct PackView: View {
         guard let data = try? JSONSerialization.data(withJSONObject: json) else { return }
         UIPasteboard.general.setItems([["net.whatsapp.third-party.sticker-pack": data]],
             options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(60)])
-        UIApplication.shared.open(URL(string: "whatsapp://stickerPack")!)
+        if let url = URL(string: "whatsapp://stickerPack") {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
 }

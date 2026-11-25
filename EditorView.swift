@@ -119,13 +119,24 @@ struct EditorView: View {
         DispatchQueue.global().async {
             let req = VNGenerateForegroundInstanceMaskRequest()
             let handler = VNImageRequestHandler(cgImage: cg)
-            var out: UIImage?
-            if (try? handler.perform([req])) != nil, let r = req.results?.first,
-               let buf = try? r.generateMaskedImage(ofInstances: r.allInstances, from: handler, croppedToInstancesExtent: true) {
-                let ci = CIImage(cvPixelBuffer: buf)
-                if let c = CIContext().createCGImage(ci, from: ci.extent) { out = UIImage(cgImage: c) }
+            var result: UIImage?
+            do {
+                try handler.perform([req])
+                if let r = req.results?.first {
+                    let buf = try r.generateMaskedImage(ofInstances: r.allInstances,
+                                                        from: handler,
+                                                        croppedToInstancesExtent: true)
+                    let ci = CIImage(cvPixelBuffer: buf)
+                    if let c = CIContext().createCGImage(ci, from: ci.extent) {
+                        result = UIImage(cgImage: c)
+                    }
+                }
+            } catch {}
+            let final = result
+            DispatchQueue.main.async {
+                if let final { self.current = final }
+                self.busy = false
             }
-            DispatchQueue.main.async { if let out { current = out }; busy = false }
         }
     }
 

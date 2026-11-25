@@ -2,7 +2,7 @@ workflows:
   ipa-sem-assinatura:
     name: IPA sem assinatura
     instance_type: mac_mini_m2
-    max_build_duration: 30
+    max_build_duration: 45
     environment:
       xcode: latest
     scripts:
@@ -13,25 +13,35 @@ workflows:
       - name: Gerar projeto Xcode
         script: |
           set -euo pipefail
-          echo "Diretório atual:"
-          pwd
-          echo "Arquivos disponíveis:"
+          echo "Diretorio atual:"; pwd
           ls -la
-          test -f project.yml || { echo "ERRO: project.yml não está na raiz do checkout."; exit 1; }
+          test -f project.yml || { echo "ERRO: project.yml nao esta na raiz do checkout."; exit 1; }
           xcodegen generate --spec ./project.yml
-          test -d Figurinha.xcodeproj || { echo "ERRO: XcodeGen não criou Figurinha.xcodeproj"; exit 1; }
+          test -d Figurinha.xcodeproj || { echo "ERRO: XcodeGen nao criou Figurinha.xcodeproj"; exit 1; }
+      - name: Resolver pacotes (SPM)
+        script: |
+          set -euo pipefail
+          xcodebuild -resolvePackageDependencies -project Figurinha.xcodeproj -scheme Figurinha
       - name: Archive sem assinatura
         script: |
           set -euo pipefail
+          rm -rf build
           xcodebuild -project Figurinha.xcodeproj -scheme Figurinha \
             -configuration Release -sdk iphoneos \
-            -archivePath build/Figurinha.xcarchive archive \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Figurinha.xcarchive \
+            -skipPackagePluginValidation -skipMacroValidation \
+            archive \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
       - name: Empacotar IPA
         script: |
           set -euo pipefail
+          APP="build/Figurinha.xcarchive/Products/Applications/Figurinha.app"
+          test -d "$APP" || { echo "ERRO: .app nao encontrado"; find build -maxdepth 4; exit 1; }
+          rm -rf Payload Figurinha-unsigned.ipa
           mkdir -p Payload
-          cp -R build/Figurinha.xcarchive/Products/Applications/Figurinha.app Payload/
+          cp -R "$APP" Payload/
           zip -qr Figurinha-unsigned.ipa Payload
     artifacts:
       - Figurinha-unsigned.ipa
+      - build/Figurinha.xcarchive
