@@ -154,6 +154,12 @@ struct PackView: View {
             alertText = "Precisa de pelo menos 3 figurinhas desse tipo."
             return
         }
+        let limit = animated ? 500_000 : 100_000
+        let tooBig = list.filter { $0.webp.count > limit }.count
+        if tooBig > 0 {
+            alertText = "\(tooBig) figurinha(s) passam do limite de \(limit / 1000) KB do WhatsApp. Exclua e crie de novo com um trecho mais curto ou com menos detalhes."
+            return
+        }
         guard let payload = WhatsAppExporter.payload(name: store.packName, stickers: list, animated: animated) else {
             alertText = "Não consegui montar o pacote."
             return
@@ -200,7 +206,9 @@ enum WhatsAppExporter {
 
         var items: [[String: Any]] = []
         for s in stickers.prefix(30) {
-            items.append(["image_data": s.webp.base64EncodedString(), "emojis": [s.emoji]])
+            items.append(["image_data": s.webp.base64EncodedString(),
+                          "emojis": [s.emoji],
+                          "accessibility_text": "Figurinha \(s.emoji)"])
         }
         let json: [String: Any] = [
             "identifier": UUID().uuidString,
@@ -209,7 +217,7 @@ enum WhatsAppExporter {
             "tray_image": png.base64EncodedString(),
             "ios_app_store_link": "",
             "android_play_store_link": "",
-            "is_animated_sticker_pack": animated,
+            "animated_sticker_pack": animated,
             "stickers": items
         ]
         return try? JSONSerialization.data(withJSONObject: json)
