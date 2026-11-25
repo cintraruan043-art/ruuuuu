@@ -1,0 +1,37 @@
+workflows:
+  ipa-sem-assinatura:
+    name: IPA sem assinatura
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+    scripts:
+      - name: Instalar XcodeGen
+        script: |
+          set -euo pipefail
+          brew install xcodegen
+      - name: Gerar projeto Xcode
+        script: |
+          set -euo pipefail
+          echo "Diretório atual:"
+          pwd
+          echo "Arquivos disponíveis:"
+          ls -la
+          test -f project.yml || { echo "ERRO: project.yml não está na raiz do checkout."; exit 1; }
+          xcodegen generate --spec ./project.yml
+          test -d Figurinha.xcodeproj || { echo "ERRO: XcodeGen não criou Figurinha.xcodeproj"; exit 1; }
+      - name: Archive sem assinatura
+        script: |
+          set -euo pipefail
+          xcodebuild -project Figurinha.xcodeproj -scheme Figurinha \
+            -configuration Release -sdk iphoneos \
+            -archivePath build/Figurinha.xcarchive archive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      - name: Empacotar IPA
+        script: |
+          set -euo pipefail
+          mkdir -p Payload
+          cp -R build/Figurinha.xcarchive/Products/Applications/Figurinha.app Payload/
+          zip -qr Figurinha-unsigned.ipa Payload
+    artifacts:
+      - Figurinha-unsigned.ipa
