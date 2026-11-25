@@ -1,30 +1,32 @@
 import SwiftUI
-import PhotosUI
-import Vision
-import CoreImage.CIFilterBuiltins
-import SDWebImageWebPCoder   // SPM: https://github.com/SDWebImage/SDWebImageWebPCoder
 
 @main
 struct FigurinhaApp: App {
-    var body: some Scene {
-        WindowGroup { RootView().preferredColorScheme(.dark) }
-    }
-}
+    @StateObject private var theme = AppTheme()
+    @StateObject private var store = Store()
 
-final class Store: ObservableObject {
-    @Published var stickers: [Sticker] = []
-    @Published var packName = "Minhas Figurinhas"
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+                .environmentObject(theme)
+                .environmentObject(store)
+                .preferredColorScheme(theme.scheme)
+        }
+    }
 }
 
 struct RootView: View {
-    @StateObject var store = Store()
+    @EnvironmentObject var theme: AppTheme
+
     var body: some View {
         TabView {
-            EditorView().tabItem { Label("Criar", systemImage: "wand.and.stars") }
-            PackView().tabItem { Label("Pacote", systemImage: "square.grid.2x2") }
+            EditorView()
+                .tabItem { Label("Criar", systemImage: "wand.and.stars") }
+            PackView()
+                .tabItem { Label("Pacote", systemImage: "square.grid.2x2") }
+            SettingsView()
+                .tabItem { Label("Ajustes", systemImage: "paintpalette") }
         }
-        .environmentObject(store)
-        .tint(Theme.accent)
+        .tint(theme.accent)
     }
 }
-

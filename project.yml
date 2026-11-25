@@ -15,9 +15,13 @@ targets:
     platform: iOS
     sources:
       - Audio.swift
+      - Composer.swift
+      - EditorModel.swift
       - EditorView.swift
       - FigurinhaApp.swift
       - PackView.swift
+      - SettingsView.swift
+      - Store.swift
       - Theme.swift
     dependencies:
       - package: SDWebImageWebPCoder
@@ -30,6 +34,7 @@ targets:
         LSApplicationQueriesSchemes:
           - whatsapp
         NSMicrophoneUsageDescription: "Permitir gravar áudio para figurinhas."
+        NSPhotoLibraryAddUsageDescription: "Permitir salvar o vídeo da figurinha com som na galeria."
         NSPhotoLibraryUsageDescription: "Permitir selecionar fotos para criar figurinhas."
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
