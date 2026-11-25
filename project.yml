@@ -14,11 +14,11 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Audio.swift
-      - EditorView.swift
-      - FigurinhaApp.swift
-      - PackView.swift
-      - Theme.swift
+      - path: Audio.swift
+      - path: EditorView.swift
+      - path: FigurinhaApp.swift
+      - path: PackView.swift
+      - path: Theme.swift
     dependencies:
       - package: SDWebImageWebPCoder
         product: SDWebImageWebPCoder
